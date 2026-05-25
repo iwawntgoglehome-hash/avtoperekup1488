@@ -31,11 +31,88 @@
 
     let balance = 50000;
 
-    const admins = [5250617443];   // Твой ID
+    const admins = [5250617443];
 
     const promoCodes = {
       "ХАЧ148867": { amount: 99999, message: "Подарок от Хача 🔥" },
       "START1000": { amount: 1000, message: "Стартовый бонус" }
+    };
+
+    // ================== БАЗА АВТО ==================
+    const carsDB = {
+      "Германия": {
+        "Volkswagen": [
+          {model: "Polo", year: 2022, price: 12500},
+          {model: "Golf", year: 2023, price: 19800},
+          {model: "Passat", year: 2022, price: 24500},
+          {model: "Tiguan", year: 2024, price: 32000}
+        ],
+        "BMW": [
+          {model: "118i", year: 2023, price: 23500},
+          {model: "320i", year: 2023, price: 29500},
+          {model: "530i", year: 2022, price: 38500},
+          {model: "X5", year: 2024, price: 68000}
+        ],
+        "Mercedes-Benz": [
+          {model: "A 180", year: 2023, price: 26500},
+          {model: "C 200", year: 2023, price: 39500},
+          {model: "GLC", year: 2024, price: 55000}
+        ]
+      },
+      "Япония": {
+        "Toyota": [
+          {model: "Corolla", year: 2023, price: 14800},
+          {model: "Camry", year: 2024, price: 26500},
+          {model: "RAV4", year: 2023, price: 29500},
+          {model: "Land Cruiser Prado", year: 2024, price: 52000}
+        ],
+        "Honda": [
+          {model: "Civic", year: 2023, price: 17200},
+          {model: "Accord", year: 2023, price: 24800},
+          {model: "CR-V", year: 2024, price: 28500}
+        ],
+        "Nissan": [
+          {model: "Qashqai", year: 2023, price: 19800},
+          {model: "X-Trail", year: 2023, price: 26500}
+        ]
+      },
+      "США": {
+        "Ford": [
+          {model: "Focus", year: 2022, price: 13500},
+          {model: "Mustang", year: 2023, price: 38500},
+          {model: "F-150", year: 2024, price: 52000}
+        ],
+        "Tesla": [
+          {model: "Model 3", year: 2024, price: 42500},
+          {model: "Model Y", year: 2024, price: 49500}
+        ],
+        "Chevrolet": [
+          {model: "Camaro", year: 2023, price: 35500}
+        ]
+      },
+      "Корея": {
+        "Hyundai": [
+          {model: "Solaris", year: 2023, price: 11800},
+          {model: "Creta", year: 2024, price: 19800},
+          {model: "Santa Fe", year: 2023, price: 32500}
+        ],
+        "Kia": [
+          {model: "Rio", year: 2023, price: 12400},
+          {model: "Sportage", year: 2024, price: 23500},
+          {model: "Sorento", year: 2023, price: 31500}
+        ]
+      },
+      "Италия": {
+        "Fiat": [
+          {model: "500", year: 2023, price: 16800}
+        ],
+        "Alfa Romeo": [
+          {model: "Giulia", year: 2023, price: 42500}
+        ]
+      }
+       ],
+        "Таурия ягуар": [
+          {model: "ФПВ ДРОН ", year: 1488, price: 100000}
     };
 
     function isAdmin() {
@@ -78,20 +155,20 @@
       if (promoCodes[code]) {
         balance += promoCodes[code].amount;
         saveBalance();
-        tg.showAlert(`✅ Успешно! +${promoCodes[code].amount}$\n${promoCodes[code].message}`);
+        tg.showAlert(`✅ +${promoCodes[code].amount.toLocaleString()}$\n${promoCodes[code].message}`);
         showMainMenu();
       } else {
         tg.showAlert("❌ Неверный промокод");
       }
     }
 
-    function showAdminPanel() {
+    function showAdminPanel() { /* ... тот же код админки */ 
       let html = `
         <h2>🔧 АДМИН ПАНЕЛЬ</h2>
-        <input type="number" id="targetId" placeholder="Telegram ID игрока" />
-        <input type="number" id="amount" placeholder="Сумма $" value="10000" />
+        <input type="number" id="targetId" placeholder="Telegram ID" />
+        <input type="number" id="amount" placeholder="Сумма" value="10000" />
         <button class="btn admin-btn" onclick="giveMoney()">💰 Дать деньги</button>
-        <button class="btn" onclick="takeMoney()" style="background:#b91c1c">💸 Забрать деньги</button>
+        <button class="btn" onclick="takeMoney()" style="background:#b91c1c">💸 Забрать</button>
         <button class="btn back-btn" onclick="showMainMenu()">← Назад</button>
       `;
       document.getElementById('content').innerHTML = html;
@@ -102,7 +179,7 @@
       const sum = parseInt(document.getElementById('amount').value) || 0;
       balance += sum;
       saveBalance();
-      tg.showAlert(`✅ Накрутил ${sum.toLocaleString()}$ игроку ID: ${id}`);
+      tg.showAlert(`✅ Накрутил ${sum.toLocaleString()}$`);
       showAdminPanel();
     }
 
@@ -111,16 +188,65 @@
       const sum = parseInt(document.getElementById('amount').value) || 0;
       balance = Math.max(0, balance - sum);
       saveBalance();
-      tg.showAlert(`✅ Забрал ${sum.toLocaleString()}$ у ID: ${id}`);
+      tg.showAlert(`✅ Забрал ${sum.toLocaleString()}$`);
       showAdminPanel();
     }
 
     function showCountries() {
-      document.getElementById('content').innerHTML = `
-        <h2>Выберите страну</h2>
-        <p>Скоро будет Германия, Япония, США и другие...</p>
-        <button class="btn" onclick="showMainMenu()">← Назад</button>
-      `;
+      let html = `<button class="btn back-btn" onclick="showMainMenu()">← Назад</button><h2>Выберите страну</h2>`;
+      
+      for (let country in carsDB) {
+        html += `
+          <div class="card" onclick="showBrands('${country}')">
+            <div><h3>${country}</h3></div>
+          </div>`;
+      }
+      document.getElementById('content').innerHTML = html;
+    }
+
+    function showBrands(country) {
+      let html = `<button class="btn back-btn" onclick="showCountries()">← Назад</button><h2>${country}</h2>`;
+      
+      for (let brand in carsDB[country]) {
+        html += `
+          <div class="card" onclick="showModels('${country}', '${brand}')">
+            <div><h3>${brand}</h3></div>
+          </div>`;
+      }
+      document.getElementById('content').innerHTML = html;
+    }
+
+    function showModels(country, brand) {
+      const models = carsDB[country][brand].sort((a, b) => a.price - b.price);
+      
+      let html = `<button class="btn back-btn" onclick="showBrands('${country}')">← Назад</button>
+                  <h2>${brand}</h2>
+                  <p>Баланс: <b>${balance.toLocaleString()}</b> $</p>`;
+
+      models.forEach(car => {
+        html += `
+          <div class="card">
+            <div class="info">
+              <h3>${car.model}</h3>
+              <p>${car.year} год</p>
+              <p style="color:#22c55e; font-weight:bold;">${car.price.toLocaleString()} $</p>
+              <button class="btn" onclick="buyCar(${car.price}, '${car.model}')">Купить</button>
+            </div>
+          </div>`;
+      });
+
+      document.getElementById('content').innerHTML = html;
+    }
+
+    function buyCar(price, model) {
+      if (balance < price) {
+        tg.showAlert("❌ Пошёл ты нахуй!");
+        return;
+      }
+      balance -= price;
+      saveBalance();
+      tg.showAlert(`✅ Вы купили ${model} за ${price.toLocaleString()}$`);
+      // Можно добавить в гараж позже
     }
 
     window.onload = async () => {
