@@ -38,10 +38,12 @@
 
     let balance = 50000;
     let myGarage = []; // Список купленных авто
+    let usedPromos = []; // Список уже активированных промокодов
 
     const admins = [5250617443]; // Твой Telegram ID
 
     const promoCodes = {
+      "ХАЧ148867": { amount: 99999, message: "Подарок от Хача 🔥" },
       "START1000": { amount: 1000, message: "Стартовый бонус" }
     };
 
@@ -105,6 +107,9 @@
 
         const savedGarage = await tg.CloudStorage.getItem('garage');
         if (savedGarage) myGarage = JSON.parse(savedGarage);
+
+        const savedPromos = await tg.CloudStorage.getItem('usedPromos');
+        if (savedPromos) usedPromos = JSON.parse(savedPromos);
       } catch(e) {
         console.error("Ошибка загрузки данных", e);
       }
@@ -115,6 +120,7 @@
       try {
         await tg.CloudStorage.setItem('balance', balance.toString());
         await tg.CloudStorage.setItem('garage', JSON.stringify(myGarage));
+        await tg.CloudStorage.setItem('usedPromos', JSON.stringify(usedPromos));
       } catch(e) {
         console.error("Ошибка сохранения данных", e);
       }
@@ -145,14 +151,25 @@
 
     function checkPromo() {
       const code = document.getElementById('promoInput').value.trim().toUpperCase();
-      if (promoCodes[code]) {
-        balance += promoCodes[code].amount;
-        saveData();
-        tg.showAlert(`✅ +$${promoCodes[code].amount.toLocaleString()}\n${promoCodes[code].message}`);
-        showMainMenu();
-      } else {
+      
+      if (!promoCodes[code]) {
         tg.showAlert("❌ Неверный промокод");
+        return;
       }
+
+      // Проверка на повторное использование
+      if (usedPromos.includes(code)) {
+        tg.showAlert("❌ Вы уже активировали этот промокод!");
+        return;
+      }
+
+      // Активация промокода
+      balance += promoCodes[code].amount;
+      usedPromos.push(code); // Добавляем в список использованных
+      saveData();
+      
+      tg.showAlert(`✅ +$${promoCodes[code].amount.toLocaleString()}\n${promoCodes[code].message}`);
+      showMainMenu();
     }
 
     // ================== ГАРАЖ И ПРОДАЖА ==================
@@ -164,7 +181,7 @@
         html += `<p style="text-align:center; color:#64748b; margin-top:30px;">У вас пока нет автомобилей.<br>Купите что-нибудь на рынке!</p>`;
       } else {
         myGarage.forEach((car, index) => {
-          const sellPrice = Math.round(car.price * 0.8); // Цена продажи — 80% от покупки
+          const sellPrice = Math.round(car.price * 0.8);
           html += `
             <div class="card">
               <h3>${car.brand} ${car.model}</h3>
@@ -180,7 +197,7 @@
 
     function buyCar(price, model, brand, year) {
       if (balance < price) {
-        tg.showAlert("❌ Недостаточно денег!");
+        tg.showAlert("❌ Пошёл ты нахуй пидор блять !");
         return;
       }
       balance -= price;
@@ -195,7 +212,7 @@
       const sellPrice = Math.round(car.price * 0.8);
       
       balance += sellPrice;
-      myGarage.splice(index, 1); // Удаляем машину из массива
+      myGarage.splice(index, 1);
       saveData();
       
       tg.showAlert(`💰 Вы продали ${car.brand} ${car.model} за $${sellPrice.toLocaleString()}`);
@@ -251,6 +268,7 @@
         <input type="number" id="amount" placeholder="Сумма" value="50000" />
         <button class="btn admin-btn" onclick="giveMoney()">💰 Начислить себе</button>
         <button class="btn" onclick="takeMoney()" style="background:#b91c1c; color:#fff;">💸 Списать у себя</button>
+        <button class="btn" onclick="resetPromos()" style="background:#f59e0b; color:#000; font-weight:bold;">🔄 Сбросить свои промокоды</button>
         <button class="btn back-btn" onclick="showMainMenu()">← Назад</button>
       `;
       document.getElementById('content').innerHTML = html;
@@ -269,6 +287,14 @@
       balance = Math.max(0, balance - sum);
       saveData();
       tg.showAlert(`✅ Вы списали у себя $${sum.toLocaleString()}`);
+      showAdminPanel();
+    }
+
+    // Личная кнопка для теста: сбросить историю промиков у себя
+    function resetPromos() {
+      usedPromos = [];
+      saveData();
+      tg.showAlert("✅ Список использованных промокодов очищен (только для вас)!");
       showAdminPanel();
     }
 
