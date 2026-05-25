@@ -30,14 +30,11 @@
     tg.expand();
 
     let balance = 50000;
-    let currentCountry = null;
-    let currentBrand = null;
 
-    const admins = [5250617443]; // ←←← Замени на свой Telegram ID !!
+    const admins = [ТУТ_ТВОЙ_ID];   // ←←← ОБЯЗАТЕЛЬНО ЗАМЕНИ НА СВОЙ ID
 
     const promoCodes = {
-      "ХАЧ148867": { amount: 99999, message: "Подарок от Хача 🔥" },
-      "START1000": { amount: 1000, message: "Бонус новичку" }
+      "ХАЧ148867": { amount: 99999, message: "Подарок от Хача 🔥" }
     };
 
     function isAdmin() {
@@ -57,37 +54,6 @@
       } catch(e) {}
     }
 
-    function showAdminPanel() {
-      let html = `
-        <h2>🔧 АДМИН ПАНЕЛЬ</h2>
-        <p>Баланс: <b>${balance.toLocaleString()}</b> $</p>
-        <input type="number" id="targetId" placeholder="Telegram ID игрока" />
-        <input type="number" id="amount" placeholder="Сумма $" value="10000" />
-        <button class="btn admin-btn" onclick="giveMoney()">💰 насосал</button>
-        <button class="btn" onclick="takeMoney()" style="background:#b91c1c">💸 Ты же депутат кради!</button>
-        <button class="btn back-btn" onclick="showMainMenu()">← Назад</button>
-      `;
-      document.getElementById('content').innerHTML = html;
-    }
-
-    function giveMoney() {
-      const id = document.getElementById('targetId').value;
-      const sum = parseInt(document.getElementById('amount').value) || 0;
-      balance += sum;
-      saveBalance();
-      tg.showAlert(`✅ Накрутил ${sum.toLocaleString()}$ игроку ID: ${id}`);
-      showAdminPanel();
-    }
-
-    function takeMoney() {
-      const id = document.getElementById('targetId').value;
-      const sum = parseInt(document.getElementById('amount').value) || 0;
-      balance = Math.max(0, balance - sum);
-      saveBalance();
-      tg.showAlert(`✅ Забрал ${sum.toLocaleString()}$ у ID: ${id}`);
-      showAdminPanel();
-    }
-
     function showMainMenu() {
       let html = `
         <h2>АвтоПерекуп</h2>
@@ -100,7 +66,7 @@
         html += `<button class="btn admin-btn" onclick="showAdminPanel()">🔧 АДМИН ПАНЕЛЬ</button>`;
       }
 
-      html += `<button class="btn" onclick="showCountries()" style="margin-top:15px">▶ Играть</button>`;
+      html += `<button class="btn" onclick="showCountries()" style="margin-top:15px">▶ Начать играть</button>`;
 
       document.getElementById('content').innerHTML = html;
     }
@@ -110,16 +76,45 @@
       if (promoCodes[code]) {
         balance += promoCodes[code].amount;
         saveBalance();
-        tg.showAlert(`✅ Успешно! +${promoCodes[code].amount}$`);
+        tg.showAlert(`✅ +${promoCodes[code].amount}$\n${promoCodes[code].message}`);
         showMainMenu();
       } else {
-        tg.showAlert("❌ Пошёл ты нахуй пидор");
+        tg.showAlert("❌ Неверный промокод");
       }
     }
 
-    // Пока без полного списка машин (чтобы было проще)
+    function showAdminPanel() {
+      let html = `
+        <h2>🔧 АДМИН ПАНЕЛЬ</h2>
+        <input type="number" id="targetId" placeholder="ID игрока" />
+        <input type="number" id="amount" placeholder="Сумма" value="10000" />
+        <button class="btn admin-btn" onclick="giveMoney()">💰 Дать деньги</button>
+        <button class="btn" onclick="takeMoney()" style="background:#b91c1c">💸 Забрать</button>
+        <button class="btn back-btn" onclick="showMainMenu()">← Назад</button>
+      `;
+      document.getElementById('content').innerHTML = html;
+    }
+
+    function giveMoney() {
+      const id = document.getElementById('targetId').value;
+      const sum = parseInt(document.getElementById('amount').value) || 0;
+      balance += sum;
+      saveBalance();
+      tg.showAlert(`✅ Накрутил ${sum}$ для ID: ${id}`);
+      showAdminPanel();
+    }
+
+    function takeMoney() {
+      const id = document.getElementById('targetId').value;
+      const sum = parseInt(document.getElementById('amount').value) || 0;
+      balance = Math.max(0, balance - sum);
+      saveBalance();
+      tg.showAlert(`✅ Забрал ${sum}$ у ID: ${id}`);
+      showAdminPanel();
+    }
+
     function showCountries() {
-      document.getElementById('content').innerHTML = `<h2>Раздел с машинами скоро будет...</h2><button class="btn" onclick="showMainMenu()">← Назад</button>`;
+      document.getElementById('content').innerHTML = `<h2>Машины будут здесь...</h2><button class="btn" onclick="showMainMenu()">← Назад</button>`;
     }
 
     window.onload = async () => {
