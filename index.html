@@ -6,18 +6,25 @@
   <title>АвтоПерекуп</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    body {font-family: system-ui, sans-serif; background:#0f172a; color:#e2e8f0; margin:0; padding:0;}
-    .header {background:#1e2937; padding:16px; text-align:center; font-size:22px; font-weight:bold;}
-    .container {padding:15px;}
-    .card {background:#1e2937; border-radius:12px; padding:12px; margin-bottom:12px; display:flex; gap:12px;}
-    .card img {width:120px; height:85px; object-fit:cover; border-radius:8px;}
+    body {font-family: system-ui, sans-serif; background:#0f172a; color:#e2e8f0; margin:0; padding:0; -webkit-user-select: none;}
+    .header {background:#1e2937; padding:16px; text-align:center; font-size:22px; font-weight:bold; border-bottom: 2px solid #334155;}
+    .container {padding:15px; padding-bottom: 30px;}
+    .card {background:#1e2937; border-radius:12px; padding:16px; margin-bottom:12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2);}
+    .card h3 {margin: 0 0 8px 0; font-size: 18px;}
+    .card p {margin: 4px 0; color: #94a3b8;}
+    .balance-box {background: #1e2937; padding: 12px; border-radius: 8px; text-align: center; margin-bottom: 15px; border: 1px solid #334155;}
     .btn {
       background:#22c55e; color:#000; border:none; padding:14px; border-radius:8px;
-      font-weight:bold; margin:8px 0; width:100%; font-size:16px;
+      font-weight:bold; margin:8px 0; width:100%; font-size:16px; cursor: pointer;
+      transition: background 0.2s;
     }
-    .admin-btn {background:#ef4444;}
-    .back-btn {background:#64748b;}
-    input {width:100%; padding:14px; border-radius:8px; border:none; margin:8px 0; font-size:16px;}
+    .btn:active { opacity: 0.8; }
+    .admin-btn {background:#ef4444; color: #fff;}
+    .back-btn {background:#64748b; color: #fff;}
+    .garage-btn {background:#3b82f6; color: #fff;}
+    .sell-btn {background:#f59e0b; color: #000;}
+    input {width:100%; padding:14px; border-radius:8px; border:1px solid #334155; margin:8px 0; font-size:16px; background:#0f172a; color:#fff; box-sizing: border-box;}
+    input:focus {outline: 2px solid #22c55e;}
   </style>
 </head>
 <body>
@@ -30,11 +37,11 @@
     tg.expand();
 
     let balance = 50000;
+    let myGarage = []; // Список купленных авто
 
-    const admins = [5250617443];
+    const admins = [5250617443]; // Твой Telegram ID
 
     const promoCodes = {
-      "ХАЧ148867": { amount: 99999, message: "Подарок от Хача 🔥" },
       "START1000": { amount: 1000, message: "Стартовый бонус" }
     };
 
@@ -70,10 +77,6 @@
           {model: "Civic", year: 2023, price: 17200},
           {model: "Accord", year: 2023, price: 24800},
           {model: "CR-V", year: 2024, price: 28500}
-        ],
-        "Nissan": [
-          {model: "Qashqai", year: 2023, price: 19800},
-          {model: "X-Trail", year: 2023, price: 26500}
         ]
       },
       "США": {
@@ -85,64 +88,57 @@
         "Tesla": [
           {model: "Model 3", year: 2024, price: 42500},
           {model: "Model Y", year: 2024, price: 49500}
-        ],
-        "Chevrolet": [
-          {model: "Camaro", year: 2023, price: 35500}
-        ]
-      },
-      "Корея": {
-        "Hyundai": [
-          {model: "Solaris", year: 2023, price: 11800},
-          {model: "Creta", year: 2024, price: 19800},
-          {model: "Santa Fe", year: 2023, price: 32500}
-        ],
-        "Kia": [
-          {model: "Rio", year: 2023, price: 12400},
-          {model: "Sportage", year: 2024, price: 23500},
-          {model: "Sorento", year: 2023, price: 31500}
-        ]
-      },
-      "Италия": {
-        "Fiat": [
-          {model: "500", year: 2023, price: 16800}
-        ],
-        "Alfa Romeo": [
-          {model: "Giulia", year: 2023, price: 42500}
         ]
       }
     };
 
     function isAdmin() {
-      return admins.includes(tg.initDataUnsafe?.user?.id);
+      const user = tg.initDataUnsafe?.user;
+      return user && admins.includes(user.id);
     }
 
-    async function loadBalance() {
+    // Загрузка данных из Telegram CloudStorage
+    async function loadData() {
       try {
-        const saved = await tg.CloudStorage.getItem('balance');
-        if (saved) balance = parseInt(saved);
-      } catch(e) {}
+        const savedBalance = await tg.CloudStorage.getItem('balance');
+        if (savedBalance) balance = parseInt(savedBalance);
+
+        const savedGarage = await tg.CloudStorage.getItem('garage');
+        if (savedGarage) myGarage = JSON.parse(savedGarage);
+      } catch(e) {
+        console.error("Ошибка загрузки данных", e);
+      }
     }
 
-    async function saveBalance() {
+    // Сохранение данных в Telegram CloudStorage
+    async function saveData() {
       try {
         await tg.CloudStorage.setItem('balance', balance.toString());
-      } catch(e) {}
+        await tg.CloudStorage.setItem('garage', JSON.stringify(myGarage));
+      } catch(e) {
+        console.error("Ошибка сохранения данных", e);
+      }
     }
 
     function showMainMenu() {
       let html = `
-        <h2>АвтоПерекуп</h2>
-        <p>Баланс: <b>${balance.toLocaleString()}</b> $</p>
+        <div class="balance-box">
+          <p style="margin:0; font-size:14px; color:#94a3b8;">Ваш баланс</p>
+          <h2 style="margin:5px 0 0 0; color:#22c55e; font-size:28px;">$ ${balance.toLocaleString()}</h2>
+        </div>
         
-        <input type="text" id="promoInput" placeholder="Введите промокод" />
-        <button class="btn" onclick="checkPromo()">Активировать промокод</button>
+        <button class="btn" onclick="showCountries()">▶ Начать играть (Рынок)</button>
+        <button class="btn garage-btn" onclick="showGarage()">🚗 Мой гараж (${myGarage.length})</button>
+
+        <div style="margin-top: 20px; border-top: 1px solid #334155; padding-top: 15px;">
+          <input type="text" id="promoInput" placeholder="Введите промокод" />
+          <button class="btn" style="background:#475569; color:#fff;" onclick="checkPromo()">Активировать промокод</button>
+        </div>
       `;
 
       if (isAdmin()) {
-        html += `<button class="btn admin-btn" onclick="showAdminPanel()">🔧 АДМИН ПАНЕЛЬ</button>`;
+        html += `<button class="btn admin-btn" onclick="showAdminPanel()" style="margin-top:20px;">🔧 АДМИН ПАНЕЛЬ</button>`;
       }
-
-      html += `<button class="btn" onclick="showCountries()" style="margin-top:15px">▶ Начать играть</button>`;
 
       document.getElementById('content').innerHTML = html;
     }
@@ -151,63 +147,79 @@
       const code = document.getElementById('promoInput').value.trim().toUpperCase();
       if (promoCodes[code]) {
         balance += promoCodes[code].amount;
-        saveBalance();
-        tg.showAlert(`✅ +${promoCodes[code].amount.toLocaleString()}$\n${promoCodes[code].message}`);
+        saveData();
+        tg.showAlert(`✅ +$${promoCodes[code].amount.toLocaleString()}\n${promoCodes[code].message}`);
         showMainMenu();
       } else {
         tg.showAlert("❌ Неверный промокод");
       }
     }
 
-    function showAdminPanel() { /* ... тот же код админки */ 
-      let html = `
-        <h2>🔧 АДМИН ПАНЕЛЬ</h2>
-        <input type="number" id="targetId" placeholder="Telegram ID" />
-        <input type="number" id="amount" placeholder="Сумма" value="10000" />
-        <button class="btn admin-btn" onclick="giveMoney()">💰 Дать деньги</button>
-        <button class="btn" onclick="takeMoney()" style="background:#b91c1c">💸 Забрать</button>
-        <button class="btn back-btn" onclick="showMainMenu()">← Назад</button>
-      `;
+    // ================== ГАРАЖ И ПРОДАЖА ==================
+    function showGarage() {
+      let html = `<button class="btn back-btn" onclick="showMainMenu()">← В главное меню</button>
+                  <h2>🚗 Мой гараж</h2>`;
+
+      if (myGarage.length === 0) {
+        html += `<p style="text-align:center; color:#64748b; margin-top:30px;">У вас пока нет автомобилей.<br>Купите что-нибудь на рынке!</p>`;
+      } else {
+        myGarage.forEach((car, index) => {
+          const sellPrice = Math.round(car.price * 0.8); // Цена продажи — 80% от покупки
+          html += `
+            <div class="card">
+              <h3>${car.brand} ${car.model}</h3>
+              <p>Год выпуска: ${car.year}</p>
+              <p>Куплен за: <span style="color:#e2e8f0;">$${car.price.toLocaleString()}</span></p>
+              <p>Цена продажи: <span style="color:#f59e0b; font-weight:bold;">$${sellPrice.toLocaleString()}</span></p>
+              <button class="btn sell-btn" onclick="sellCar(${index})">Продать за $${sellPrice.toLocaleString()}</button>
+            </div>`;
+        });
+      }
       document.getElementById('content').innerHTML = html;
     }
 
-    function giveMoney() {
-      const id = document.getElementById('targetId').value;
-      const sum = parseInt(document.getElementById('amount').value) || 0;
-      balance += sum;
-      saveBalance();
-      tg.showAlert(`✅ Накрутил ${sum.toLocaleString()}$`);
-      showAdminPanel();
+    function buyCar(price, model, brand, year) {
+      if (balance < price) {
+        tg.showAlert("❌ Недостаточно денег!");
+        return;
+      }
+      balance -= price;
+      myGarage.push({ brand, model, year, price });
+      saveData();
+      tg.showAlert(`✅ Вы успешно купили ${brand} ${model}!`);
+      showMainMenu();
     }
 
-    function takeMoney() {
-      const id = document.getElementById('targetId').value;
-      const sum = parseInt(document.getElementById('amount').value) || 0;
-      balance = Math.max(0, balance - sum);
-      saveBalance();
-      tg.showAlert(`✅ Забрал ${sum.toLocaleString()}$`);
-      showAdminPanel();
-    }
-
-    function showCountries() {
-      let html = `<button class="btn back-btn" onclick="showMainMenu()">← Назад</button><h2>Выберите страну</h2>`;
+    function sellCar(index) {
+      const car = myGarage[index];
+      const sellPrice = Math.round(car.price * 0.8);
       
+      balance += sellPrice;
+      myGarage.splice(index, 1); // Удаляем машину из массива
+      saveData();
+      
+      tg.showAlert(`💰 Вы продали ${car.brand} ${car.model} за $${sellPrice.toLocaleString()}`);
+      showGarage();
+    }
+
+    // ================== РЫНОК АВТОМОБИЛЕЙ ==================
+    function showCountries() {
+      let html = `<button class="btn back-btn" onclick="showMainMenu()">← Назад</button><h2>Выберите регион</h2>`;
       for (let country in carsDB) {
         html += `
-          <div class="card" onclick="showBrands('${country}')">
-            <div><h3>${country}</h3></div>
+          <div class="card" onclick="showBrands('${country}')" style="cursor:pointer;">
+            <h3>🗺️ ${country}</h3>
           </div>`;
       }
       document.getElementById('content').innerHTML = html;
     }
 
     function showBrands(country) {
-      let html = `<button class="btn back-btn" onclick="showCountries()">← Назад</button><h2>${country}</h2>`;
-      
+      let html = `<button class="btn back-btn" onclick="showCountries()">← Назад</button><h2>Марки (${country})</h2>`;
       for (let brand in carsDB[country]) {
         html += `
-          <div class="card" onclick="showModels('${country}', '${brand}')">
-            <div><h3>${brand}</h3></div>
+          <div class="card" onclick="showModels('${country}', '${brand}')" style="cursor:pointer;">
+            <h3>🚘 ${brand}</h3>
           </div>`;
       }
       document.getElementById('content').innerHTML = html;
@@ -215,39 +227,53 @@
 
     function showModels(country, brand) {
       const models = carsDB[country][brand].sort((a, b) => a.price - b.price);
-      
       let html = `<button class="btn back-btn" onclick="showBrands('${country}')">← Назад</button>
-                  <h2>${brand}</h2>
-                  <p>Баланс: <b>${balance.toLocaleString()}</b> $</p>`;
+                  <h2>Покупка: ${brand}</h2>
+                  <p>Ваш баланс: <b style="color:#22c55e;">$${balance.toLocaleString()}</b></p>`;
 
       models.forEach(car => {
         html += `
           <div class="card">
-            <div class="info">
-              <h3>${car.model}</h3>
-              <p>${car.year} год</p>
-              <p style="color:#22c55e; font-weight:bold;">${car.price.toLocaleString()} $</p>
-              <button class="btn" onclick="buyCar(${car.price}, '${car.model}')">Купить</button>
-            </div>
+            <h3>${car.model}</h3>
+            <p>Год: ${car.year}</p>
+            <p style="color:#22c55e; font-weight:bold; font-size:18px;">$ ${car.price.toLocaleString()}</p>
+            <button class="btn" onclick="buyCar(${car.price}, '${car.model}', '${brand}', ${car.year})">Купить автомобиль</button>
           </div>`;
       });
-
       document.getElementById('content').innerHTML = html;
     }
 
-    function buyCar(price, model) {
-      if (balance < price) {
-        tg.showAlert("❌ Недостаточно денег!");
-        return;
-      }
-      balance -= price;
-      saveBalance();
-      tg.showAlert(`✅ Вы купили ${model} за ${price.toLocaleString()}$`);
-      // Можно добавить в гараж позже
+    // ================== АДМИН ПАНЕЛЬ ==================
+    function showAdminPanel() { 
+      let html = `
+        <h2>🔧 АДМИН ПАНЕЛЬ</h2>
+        <p>Управление вашим личным балансом.</p>
+        <input type="number" id="amount" placeholder="Сумма" value="50000" />
+        <button class="btn admin-btn" onclick="giveMoney()">💰 Начислить себе</button>
+        <button class="btn" onclick="takeMoney()" style="background:#b91c1c; color:#fff;">💸 Списать у себя</button>
+        <button class="btn back-btn" onclick="showMainMenu()">← Назад</button>
+      `;
+      document.getElementById('content').innerHTML = html;
+    }
+
+    function giveMoney() {
+      const sum = parseInt(document.getElementById('amount').value) || 0;
+      balance += sum;
+      saveData();
+      tg.showAlert(`✅ Вы выдали себе $${sum.toLocaleString()}`);
+      showAdminPanel();
+    }
+
+    function takeMoney() {
+      const sum = parseInt(document.getElementById('amount').value) || 0;
+      balance = Math.max(0, balance - sum);
+      saveData();
+      tg.showAlert(`✅ Вы списали у себя $${sum.toLocaleString()}`);
+      showAdminPanel();
     }
 
     window.onload = async () => {
-      await loadBalance();
+      await loadData();
       showMainMenu();
     };
   </script>
