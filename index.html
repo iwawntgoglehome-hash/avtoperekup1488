@@ -2,126 +2,41 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>АвтоПерекуп</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    body {font-family: system-ui, sans-serif; background:#0f172a; color:#e2e8f0; margin:0; padding:0;}
-    .header {background:#1e2937; padding:16px; text-align:center; font-size:22px; font-weight:bold;}
-    .container {padding:15px;}
-    .card {background:#1e2937; border-radius:12px; padding:12px; margin-bottom:12px; display:flex; gap:12px;}
-    .card img {width:120px; height:85px; object-fit:cover; border-radius:8px;}
-    .btn {
-      background:#22c55e; color:#000; border:none; padding:14px; border-radius:8px;
-      font-weight:bold; margin:8px 0; width:100%; font-size:16px;
+    body {
+      background: #0f172a;
+      color: white;
+      font-family: sans-serif;
+      text-align: center;
+      padding: 50px 20px;
     }
-    .admin-btn {background:#ef4444;}
-    .back-btn {background:#64748b;}
-    input {width:100%; padding:14px; border-radius:8px; border:none; margin:8px 0; font-size:16px;}
+    h1 { color: #22c55e; }
+    button {
+      background: #22c55e;
+      color: black;
+      border: none;
+      padding: 15px 30px;
+      font-size: 18px;
+      border-radius: 10px;
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
-  <div class="header" id="header">АвтоПерекуп</div>
-  <div class="container" id="content"></div>
+  <h1>✅ АвтоПерекуп</h1>
+  <p>Мини-приложение работает!</p>
+  <p>Баланс: <b>50000$</b></p>
+  <button onclick="alert('Промокод ХАЧ148867 активирован +99999$ 🔥')">Ввести промокод</button>
+  <button onclick="alert('Админ панель открыта (тест)')" style="background:#ef4444; margin-left:10px;">Админка</button>
 
   <script>
     const tg = window.Telegram.WebApp;
     tg.ready();
     tg.expand();
-
-    let balance = 50000;
-
-    const admins = [ТУТ_ТВОЙ_ID];   // ←←← Замени на свой Telegram ID !!
-
-    const promoCodes = {
-      "ХАЧ148867": { amount: 99999, message: "Подарок от Хача 🔥" },
-      "START1000": { amount: 1000, message: "Бонус" }
-    };
-
-    function isAdmin() {
-      return admins.includes(tg.initDataUnsafe?.user?.id);
-    }
-
-    async function loadBalance() {
-      try {
-        const saved = await tg.CloudStorage.getItem('balance');
-        if (saved) balance = parseInt(saved);
-      } catch(e) {}
-    }
-
-    async function saveBalance() {
-      try {
-        await tg.CloudStorage.setItem('balance', balance.toString());
-      } catch(e) {}
-    }
-
-    function showMainMenu() {
-      let html = `
-        <h2>АвтоПерекуп</h2>
-        <p>Баланс: <b>${balance.toLocaleString()}</b> $</p>
-        <input type="text" id="promoInput" placeholder="Введите промокод" />
-        <button class="btn" onclick="checkPromo()">Активировать промокод</button>
-      `;
-
-      if (isAdmin()) {
-        html += `<button class="btn admin-btn" onclick="showAdminPanel()">🔧 АДМИН ПАНЕЛЬ</button>`;
-      }
-
-      html += `<button class="btn" onclick="showCountries()" style="margin-top:15px">▶ Начать играть</button>`;
-
-      document.getElementById('content').innerHTML = html;
-    }
-
-    function checkPromo() {
-      const code = document.getElementById('promoInput').value.trim().toUpperCase();
-      if (promoCodes[code]) {
-        balance += promoCodes[code].amount;
-        saveBalance();
-        tg.showAlert(`✅ +${promoCodes[code].amount}$`);
-        showMainMenu();
-      } else {
-        tg.showAlert("❌ Неверный промокод");
-      }
-    }
-
-    function showAdminPanel() {
-      let html = `
-        <h2>🔧 АДМИН ПАНЕЛЬ</h2>
-        <input type="number" id="targetId" placeholder="Telegram ID" />
-        <input type="number" id="amount" placeholder="Сумма $" value="10000" />
-        <button class="btn admin-btn" onclick="giveMoney()">💰 Дать деньги</button>
-        <button class="btn" onclick="takeMoney()" style="background:#b91c1c">💸 Забрать деньги</button>
-        <button class="btn back-btn" onclick="showMainMenu()">← Назад</button>
-      `;
-      document.getElementById('content').innerHTML = html;
-    }
-
-    function giveMoney() {
-      const id = document.getElementById('targetId').value;
-      const sum = parseInt(document.getElementById('amount').value) || 0;
-      balance += sum;
-      saveBalance();
-      tg.showAlert(`✅ Накрутил ${sum}$`);
-      showAdminPanel();
-    }
-
-    function takeMoney() {
-      const id = document.getElementById('targetId').value;
-      const sum = parseInt(document.getElementById('amount').value) || 0;
-      balance = Math.max(0, balance - sum);
-      saveBalance();
-      tg.showAlert(`✅ Забрал ${sum}$`);
-      showAdminPanel();
-    }
-
-    function showCountries() {
-      document.getElementById('content').innerHTML = `<h2>Машины скоро...</h2><button class="btn" onclick="showMainMenu()">← Назад</button>`;
-    }
-
-    window.onload = async () => {
-      await loadBalance();
-      showMainMenu();
-    };
+    console.log("Мини app запущен успешно");
   </script>
 </body>
 </html>
