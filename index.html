@@ -110,9 +110,6 @@
           {model: "Giulia", year: 2023, price: 42500}
         ]
       }
-       ],
-        "Таурия ягуар": [
-          {model: "ФПВ ДРОН ", year: 1488, price: 100000}
     };
 
     function isAdmin() {
@@ -240,7 +237,7 @@
 
     function buyCar(price, model) {
       if (balance < price) {
-        tg.showAlert("❌ Пошёл ты нахуй!");
+        tg.showAlert("❌ Недостаточно денег!");
         return;
       }
       balance -= price;
