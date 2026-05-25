@@ -33,7 +33,7 @@
     let currentCountry = null;
     let currentBrand = null;
 
-    const admins = [123456789]; // ←←← Замени на свой Telegram ID !!
+    const admins = [5250617443]; // ←←← Замени на свой Telegram ID !!
 
     const promoCodes = {
       "ХАЧ148867": { amount: 99999, message: "Подарок от Хача 🔥" },
@@ -63,8 +63,8 @@
         <p>Баланс: <b>${balance.toLocaleString()}</b> $</p>
         <input type="number" id="targetId" placeholder="Telegram ID игрока" />
         <input type="number" id="amount" placeholder="Сумма $" value="10000" />
-        <button class="btn admin-btn" onclick="giveMoney()">💰 Дать деньги</button>
-        <button class="btn" onclick="takeMoney()" style="background:#b91c1c">💸 Забрать деньги</button>
+        <button class="btn admin-btn" onclick="giveMoney()">💰 насосал</button>
+        <button class="btn" onclick="takeMoney()" style="background:#b91c1c">💸 Ты же депутат кради!</button>
         <button class="btn back-btn" onclick="showMainMenu()">← Назад</button>
       `;
       document.getElementById('content').innerHTML = html;
@@ -113,7 +113,7 @@
         tg.showAlert(`✅ Успешно! +${promoCodes[code].amount}$`);
         showMainMenu();
       } else {
-        tg.showAlert("❌ Неверный промокод");
+        tg.showAlert("❌ Пошёл ты нахуй пидор");
       }
     }
 
