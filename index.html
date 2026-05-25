@@ -31,10 +31,11 @@
 
     let balance = 50000;
 
-    const admins = [ТУТ_ТВОЙ_ID];   // ←←← ОБЯЗАТЕЛЬНО ЗАМЕНИ НА СВОЙ ID
+    const admins = [ТУТ_ТВОЙ_ID];   // ←←← Замени на свой Telegram ID !!
 
     const promoCodes = {
-      "ХАЧ148867": { amount: 99999, message: "Подарок от Хача 🔥" }
+      "ХАЧ148867": { amount: 99999, message: "Подарок от Хача 🔥" },
+      "START1000": { amount: 1000, message: "Бонус" }
     };
 
     function isAdmin() {
@@ -76,7 +77,7 @@
       if (promoCodes[code]) {
         balance += promoCodes[code].amount;
         saveBalance();
-        tg.showAlert(`✅ +${promoCodes[code].amount}$\n${promoCodes[code].message}`);
+        tg.showAlert(`✅ +${promoCodes[code].amount}$`);
         showMainMenu();
       } else {
         tg.showAlert("❌ Неверный промокод");
@@ -86,10 +87,10 @@
     function showAdminPanel() {
       let html = `
         <h2>🔧 АДМИН ПАНЕЛЬ</h2>
-        <input type="number" id="targetId" placeholder="ID игрока" />
-        <input type="number" id="amount" placeholder="Сумма" value="10000" />
+        <input type="number" id="targetId" placeholder="Telegram ID" />
+        <input type="number" id="amount" placeholder="Сумма $" value="10000" />
         <button class="btn admin-btn" onclick="giveMoney()">💰 Дать деньги</button>
-        <button class="btn" onclick="takeMoney()" style="background:#b91c1c">💸 Забрать</button>
+        <button class="btn" onclick="takeMoney()" style="background:#b91c1c">💸 Забрать деньги</button>
         <button class="btn back-btn" onclick="showMainMenu()">← Назад</button>
       `;
       document.getElementById('content').innerHTML = html;
@@ -100,7 +101,7 @@
       const sum = parseInt(document.getElementById('amount').value) || 0;
       balance += sum;
       saveBalance();
-      tg.showAlert(`✅ Накрутил ${sum}$ для ID: ${id}`);
+      tg.showAlert(`✅ Накрутил ${sum}$`);
       showAdminPanel();
     }
 
@@ -109,12 +110,12 @@
       const sum = parseInt(document.getElementById('amount').value) || 0;
       balance = Math.max(0, balance - sum);
       saveBalance();
-      tg.showAlert(`✅ Забрал ${sum}$ у ID: ${id}`);
+      tg.showAlert(`✅ Забрал ${sum}$`);
       showAdminPanel();
     }
 
     function showCountries() {
-      document.getElementById('content').innerHTML = `<h2>Машины будут здесь...</h2><button class="btn" onclick="showMainMenu()">← Назад</button>`;
+      document.getElementById('content').innerHTML = `<h2>Машины скоро...</h2><button class="btn" onclick="showMainMenu()">← Назад</button>`;
     }
 
     window.onload = async () => {
